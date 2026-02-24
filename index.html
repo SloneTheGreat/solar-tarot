@@ -6,325 +6,255 @@
     <title>쿼카의 태양계 운세</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
-            color: #e0e0e0;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            text-align: center;
-            overflow: hidden;
-        }
-        .container {
-            width: 90%;
-            max-width: 500px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 40px 30px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
+        body { background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%); color: #e0e0e0; font-family: 'Pretendard', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; text-align: center; overflow: hidden; }
+        .container { width: 90%; max-width: 500px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 30px 30px 40px; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
         .hidden { display: none !important; }
         .fade-in { animation: fadeIn 0.8s forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 우상단 닫기 버튼 */
+        .close-btn {
+            position: absolute; top: 15px; right: 15px;
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.1); border: none; border-radius: 50%;
+            color: #fff; font-size: 1.2rem; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.3s ease; z-index: 100;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+
+        .hero-image-wrap { width: 100%; aspect-ratio: 2 / 1; border-radius: 14px; overflow: hidden; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.12); }
+        .hero-image-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        
+        #intro-screen h1 { font-size: 1.6rem; margin-bottom: 16px; color: #ffd700; }
+        #daily-message { font-size: 1rem; line-height: 1.6; margin-bottom: 24px; color: #b0c4de; background: rgba(0,0,0,0.2); padding: 18px; border-radius: 15px; word-break: keep-all; }
+        .copyright { margin-top: 28px; font-size: 0.82rem; }
+        .copyright a { color: #888; text-decoration: none; }
+        
+        #loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; }
+        .breathing-text { font-size: 1.2rem; line-height: 1.8; color: #87cefa; margin-bottom: 40px; animation: breathe 2s infinite ease-in-out; }
+        @keyframes breathe { 0%, 100% { transform: scale(0.95); opacity: 0.6; } 50% { transform: scale(1.05); opacity: 1; text-shadow: 0 0 15px rgba(135,206,250,0.8); } }
+
+        /* 동적 셔플 덱 */
+        .shuffle-deck { position: relative; width: 90px; height: 130px; perspective: 1000px; }
+        .shuffle-card {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #2b1f42, #4a3b69);
+            border: 2px solid rgba(255,215,0,0.4); border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center; font-size: 2.5rem;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
         }
 
-        /* 인트로 화면 */
-        #intro-screen h1 { font-size: 1.8rem; margin-bottom: 20px; color: #ffd700; }
-        #daily-message {
-            font-size: 1.05rem;
-            line-height: 1.7;
-            margin-bottom: 30px;
-            color: #b0c4de;
-            min-height: 90px;
-            background: rgba(0,0,0,0.2);
-            padding: 20px;
-            border-radius: 15px;
-            word-break: keep-all;
-        }
-
-        /* 카피라이트 스타일 */
-        .copyright {
-            margin-top: 30px;
-            font-size: 0.85rem;
-        }
-        .copyright a {
-            color: #888;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        .copyright a:hover {
-            color: #87cefa;
-        }
-
-        /* 로딩 화면 */
-        #loading-screen .breathing-text {
-            font-size: 1.3rem;
-            line-height: 1.8;
-            color: #87cefa;
-            animation: breathe 3s infinite ease-in-out;
-        }
-        @keyframes breathe {
-            0%   { transform: scale(0.95); opacity: 0.6; }
-            50%  { transform: scale(1.05); opacity: 1; text-shadow: 0 0 15px rgba(135,206,250,0.8); }
-            100% { transform: scale(0.95); opacity: 0.6; }
-        }
-
-        /* 결과 화면 - 카드 */
-        .cards-wrapper {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .card {
-            width: 140px;
-            height: 200px;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            animation: slideUp 0.6s forwards;
-            opacity: 0;
-        }
+        .cards-wrapper { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        .card { width: 140px; height: 200px; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; animation: slideUp 0.6s forwards; }
         .card:nth-child(2) { animation-delay: 0.25s; }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
         .card .emoji { font-size: 3.5rem; margin-bottom: 10px; }
         .card .name  { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
         .card .type  { font-size: 0.75rem; color: #a9a9a9; }
-
-        #result-screen .theme-title {
-            font-size: 1.4rem; color: #ffd700; margin-bottom: 15px;
-        }
-        #result-screen .fortune-text {
-            font-size: 1rem; line-height: 1.6; color: #e0e0e0;
-            margin-bottom: 30px; text-align: left;
-            background: rgba(0,0,0,0.3); padding: 20px;
-            border-radius: 10px; word-break: keep-all;
-        }
-
-        /* 버튼 기본 공통 스타일 */
-        button {
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            font-size: 1.1rem;
-            padding: 15px 30px;
-        }
-        button:hover {
-            transform: translateY(-2px);
-        }
         
-        /* 버튼 색상 개별 지정 */
-        .btn-primary {
+        #result-screen .theme-title { font-size: 1.4rem; color: #ffd700; margin-bottom: 15px; }
+        #result-screen .fortune-text { font-size: 1rem; line-height: 1.6; color: #e0e0e0; margin-bottom: 30px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; word-break: keep-all; text-align: left; }
+        
+        /* 버튼 스타일링 */
+        button { border: none; cursor: pointer; outline: none; }
+        .btn-primary { 
+            color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px; 
+            transition: all 0.3s ease; padding: 15px 30px; font-size: 1.1rem;
             background: linear-gradient(45deg, #4b0082, #00008b);
         }
-        .btn-primary:hover {
-            background: linear-gradient(45deg, #5a009d, #0000a8);
-            box-shadow: 0 6px 20px rgba(75,0,130,0.6);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(45deg, #2b5876, #4e4376);
-            font-size: 1rem;
-            padding: 15px 20px;
-        }
-        .btn-secondary:hover {
-            background: linear-gradient(45deg, #3b749a, #65569a);
-            box-shadow: 0 6px 20px rgba(78, 67, 118, 0.6);
-        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(75,0,130,0.6); }
 
-        /* 결과 화면 하단 버튼 그룹 */
-        .button-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
+        /* 결과창 버튼 그룹 (다시뽑기 아이콘 + 해설보기 버튼) */
+        .button-group { display: flex; gap: 15px; justify-content: center; align-items: stretch; width: 100%; }
+        
+        /* 아이콘 버튼 (다시뽑기) */
+        .btn-icon {
+            width: 55px; height: 55px; flex-shrink: 0;
+            border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2);
+            color: white; font-size: 1.5rem; display: flex; justify-content: center; align-items: center;
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .btn-icon:hover { background: rgba(255, 255, 255, 0.2); transform: rotate(-180deg); }
+
+        /* 강력한 CTA 버튼 (해설보기) */
+        .btn-cta {
+            flex-grow: 1; 
+            background: linear-gradient(45deg, #ff512f, #dd2476); 
+            color: white; font-size: 1.2rem; font-weight: bold; padding: 0 20px;
+            border-radius: 30px; text-decoration: none; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 15px rgba(221, 36, 118, 0.5);
+            animation: pulse-glow 2s infinite; transition: all 0.3s ease;
+        }
+        .btn-cta:hover { transform: translateY(-2px); background: linear-gradient(45deg, #ff613c, #ed3588); box-shadow: 0 6px 20px rgba(221, 36, 118, 0.8); }
+        
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(221, 36, 118, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(221, 36, 118, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(221, 36, 118, 0); }
         }
     </style>
 </head>
 <body>
 <div class="container">
+    <!-- 창 닫기 버튼 -->
+    <button class="close-btn" onclick="closeWindow()" title="창 닫기">✖</button>
 
-    <!-- ① 인트로 화면 -->
     <div id="intro-screen">
+        <div class="hero-image-wrap"><img src="hero.jpg" alt="쿼카의 태양계 운세"></div>
         <h1>🐿️ 쿼카의 태양계 운세 🌌</h1>
         <div id="daily-message"></div>
-        <button id="start-btn" class="btn-primary" onclick="startFortune()">운세 뽑기 ✨</button>
-        
-        <!-- 카피라이트 및 블로그 링크 -->
-        <div class="copyright">
-            <a href="https://blog.naver.com/legalhomebody" target="_blank">ⓒ 2026. 쿼카타임즈 All rights reserved.</a>
-        </div>
+        <button class="btn-primary" onclick="startFortune()">운세 뽑기 ✨</button>
+        <div class="copyright"><a href="https://blog.naver.com/legalhomebody" target="_blank">ⓒ 2026. 쿼카타임즈 All rights reserved.</a></div>
     </div>
 
-    <!-- ② 심호흡 로딩 화면 -->
     <div id="loading-screen" class="hidden">
-        <div class="breathing-text">
-            태양계의 기운이<br>당신에게 오고 있습니다.<br><br>
-            심호흡을 한번 하고<br>마음을 가다듬어 주세요...
-        </div>
+        <div class="breathing-text">우주의 수많은 가능성 중<br>당신의 별을 찾고 있습니다...</div>
+        <div class="shuffle-deck" id="shuffle-deck"></div>
     </div>
 
-    <!-- ③ 결과 화면 -->
     <div id="result-screen" class="hidden">
         <h2 style="font-size:1.1rem; color:#87cefa; margin-bottom:15px;">오늘의 천체 카드 조합</h2>
         <div class="cards-wrapper">
-            <div class="card">
-                <div class="emoji" id="inner-emoji"></div>
-                <div class="name"  id="inner-name"></div>
-                <div class="type">나의 대처 (내행성)</div>
-            </div>
-            <div class="card">
-                <div class="emoji" id="outer-emoji"></div>
-                <div class="name"  id="outer-name"></div>
-                <div class="type">오늘의 환경 (외행성)</div>
-            </div>
+            <div class="card"><div class="emoji" id="inner-emoji"></div><div class="name" id="inner-name"></div><div class="type">나의 대처 (내행성)</div></div>
+            <div class="card"><div class="emoji" id="outer-emoji"></div><div class="name" id="outer-name"></div><div class="type">오늘의 환경 (외행성)</div></div>
         </div>
         <div class="theme-title" id="fortune-theme"></div>
         <div class="fortune-text" id="fortune-desc"></div>
         
-        <!-- 버튼 2개 나란히 배치 -->
+        <!-- 하단 버튼 영역 -->
         <div class="button-group">
-            <button class="btn-primary" onclick="resetFortune()" style="font-size: 1rem; padding: 15px 20px;">다시 뽑기 🔄</button>
-            <!-- 버튼명 변경 및 이동 함수 연결 -->
-            <button class="btn-secondary" onclick="goToOtherFortune()">다른 운세 보기 🔮</button>
+            <button class="btn-icon" onclick="resetFortune()" title="다시 뽑기">🔄</button>
+            <a href="#" id="detail-btn" target="_blank" class="btn-cta">자세한 해설 보기 🔮</a>
         </div>
     </div>
-
 </div>
 
 <script>
-// ============================================================
-// 천체 데이터
-// ============================================================
-const innerPlanets = [
-    { name: "수성", emoji: "☿️" }, { name: "금성", emoji: "♀️" }, 
-    { name: "지구", emoji: "🌍" }, { name: "달",   emoji: "🌙" }, { name: "화성", emoji: "♂️" }
-];
+// 창 닫기 함수 (브라우저 정책에 따라 안 될 수도 있으므로 최소한의 조치)
+function closeWindow() {
+    if(confirm("운세를 종료하시겠습니까?")) {
+        window.close();
+        // window.close()가 브라우저 보안상 안 먹힐 경우 화면을 가림
+        document.body.innerHTML = '<h2 style="color:white; margin-top:20vh;">이용해 주셔서 감사합니다 🐿️✨<br><br>창을 닫아주세요.</h2>';
+    }
+}
 
-const outerPlanets = [
-    { name: "태양",   emoji: "☀️" }, { name: "목성",   emoji: "♃"  }, { name: "토성",   emoji: "♄"  },
-    { name: "천왕성", emoji: "⛢"  }, { name: "해왕성", emoji: "♆"  }, { name: "명왕성", emoji: "♇"  }
-];
+const innerPlanets = [{name:"수성",emoji:"☿️"},{name:"금성",emoji:"♀️"},{name:"지구",emoji:"🌍"},{name:"달",emoji:"🌙"},{name:"화성",emoji:"♂️"}];
+const outerPlanets = [{name:"태양",emoji:"☀️"},{name:"목성",emoji:"♃"},{name:"토성",emoji:"♄"},{name:"천왕성",emoji:"⛢"},{name:"해왕성",emoji:"♆"},{name:"명왕성",emoji:"♇"}];
+const allEmojis = ["☿️","♀️","🌍","🌙","♂️","☀️","♃","♄","⛢","♆","♇","✨","🌟","☄️"];
 
-// ============================================================
-// 30개 조합 운세 데이터
-// ============================================================
 const fortuneDB = {
-    "수성-태양": { theme: "빛나는 전령", desc: "오늘 당신의 언변과 재치가 가장 강력한 사람의 마음을 움직입니다. 중요한 프레젠테이션이나 협상에 최적의 날입니다." },
-    "수성-목성": { theme: "대화로 여는 황금문", desc: "오늘 단 한 번의 전화, 한 통의 메시지가 큰 기회의 문을 열 수 있습니다. 먼저 연락하는 것을 주저하지 마세요." },
-    "수성-토성": { theme: "신중한 계약", desc: "오늘은 말보다 문서가 중요합니다. 구두 약속은 반드시 기록으로 남기고, 절차와 규율을 철저히 지키세요." },
-    "수성-천왕성": { theme: "혁명적 발상", desc: "당신의 빠른 사고와 기발한 아이디어가 상식을 뒤집습니다. 다소 기괴해 보일 수 있는 발상이 오늘의 의외의 해결책이 됩니다." },
-    "수성-해왕성": { theme: "안개 속의 메시지", desc: "아무리 정확한 말도 안개 속에서는 왜곡될 수 있습니다. 중요한 소통은 꼭 확인과 재확인을 거치세요." },
-    "수성-명왕성": { theme: "진실의 심문", desc: "오래 감춰두었던 진실이 수면 위로 올라옵니다. 말을 꾸미기보다 솔직하게 털어놓는 것이 오히려 관계를 회복시킵니다." },
-    "금성-태양": { theme: "찬란한 전성기", desc: "당신의 매력과 창의성이 태양 아래 가장 크게 빛나는 날입니다. 오랫동안 준비해온 작품이나 마음을 지금 꺼내어 보여주세요." },
-    "금성-목성": { theme: "풍요로운 사랑", desc: "당신을 아끼는 사람의 든든한 지원이 쏟아집니다. 인연과 창작 활동 모두 풍성한 결실을 맺을 수 있는 하루입니다." },
-    "금성-토성": { theme: "시험받는 사랑", desc: "감정보다 현실이 앞에 놓입니다. 오래된 관계가 진심인지 타성인지 스스로 물어보세요. 진짜 사랑은 시련 앞에서 더 단단해집니다." },
-    "금성-천왕성": { theme: "예상치 못한 설렘", desc: "전혀 예상치 못한 장소, 전혀 뜻밖의 사람으로부터 마음이 흔들리는 사건이 발생합니다. 열린 마음으로 새로운 만남을 맞이하세요." },
-    "금성-해왕성": { theme: "이상과 환상의 사랑", desc: "상대방이 실제보다 훨씬 완벽해 보일 수 있습니다. 감정의 파도에 휩쓸리기 전에 현실적인 면모를 냉정하게 바라보세요." },
-    "금성-명왕성": { theme: "저승까지 따라간 사랑", desc: "집착과 헌신 사이의 경계에 서게 됩니다. 내려놓아야 할 감정을 아직 붙들고 있지는 않은지 스스로에게 물어볼 날입니다." },
-    "지구-태양": { theme: "생명의 기반", desc: "모든 것이 제자리에 있는 평온한 날입니다. 일상의 루틴을 믿고 그대로 실행하세요. 특별할 것 없어 보이는 오늘이 가장 완벽한 하루입니다." },
-    "지구-목성": { theme: "거대한 보호막", desc: "당신의 곁에는 보이지 않는 든든한 후원자와 보호막이 존재합니다. 혼자 감당하려 하지 말고 주변의 도움을 편안히 받아들이세요." },
-    "지구-토성": { theme: "견고한 기초 공사", desc: "오늘 당장 결과가 나오지 않더라도, 지금 묵묵히 쌓아 올리는 기반이 훗날 가장 오래 남는 든든한 자산이 될 것입니다." },
-    "지구-천왕성": { theme: "지각 변동", desc: "당신의 일상과 안정을 뒤흔드는 변화의 바람이 불어옵니다. 저항하면 더 큰 충격이 오니 유연하게 흐름에 몸을 맡기세요." },
-    "지구-해왕성": { theme: "현실 속의 꿈", desc: "현실 위에 꿈이 떠 있는 날입니다. 목표가 현실적인 발판 위에 있는지 점검하세요. 발이 땅을 완전히 떠나는 것은 위험합니다." },
-    "지구-명왕성": { theme: "깊은 땅속의 변화", desc: "느리지만 근본적인 변화가 내면에서 일어나고 있습니다. 지금 불편하게 느껴지는 상황이 사실 새로운 시작을 위한 준비임을 깨달으세요." },
-    "달-태양": { theme: "일식과 보름달", desc: "내면의 감정과 외부의 상황이 완벽하게 일치하는 강력한 날입니다. 오랫동안 갈망했던 것을 오늘 선언하세요. 우주가 당신의 편입니다." },
-    "달-목성": { theme: "넘치는 감정의 축제", desc: "감정이 풍부하게 넘쳐흐릅니다. 이 에너지를 창작, 대화, 취미로 표현하면 주변으로부터 뜻밖의 큰 호응을 얻게 됩니다." },
-    "달-토성": { theme: "억누른 감정", desc: "하고 싶은 말을 참아야 하는 답답한 상황이 올 수 있습니다. 억누른 감정은 일기나 산책 등 혼자만의 고요한 시간으로 소화해 보세요." },
-    "달-천왕성": { theme: "갑작스러운 감정 폭풍", desc: "이유 모를 분노나 설렘 등 예측 불가능한 감정의 파도가 밀려옵니다. 충동적인 행동으로 이어지기 전에 깊게 심호흡을 하세요." },
-    "달-해왕성": { theme: "꿈과 현실의 경계", desc: "몽상과 직관이 극대화되어 예술적 영감은 넘치지만, 현실 판단이 흐려질 수 있습니다. 중요한 결정은 내일로 미루세요." },
-    "달-명왕성": { theme: "상처의 변환", desc: "오래된 감정의 상처가 다시 떠오를 수 있습니다. 회피하지 않고 마주할 용기가 생겼습니다. 진정한 치유는 바로 지금부터 시작됩니다." },
-    "화성-태양": { theme: "전쟁의 화신", desc: "두려움이 사라지고 에너지가 정점에 달합니다. 오랫동안 피해왔던 벅찬 과제나 도전을 오늘 정면 돌파해 보세요. 승리할 수 있습니다." },
-    "화성-목성": { theme: "정복자의 야망", desc: "당신의 목표를 평소보다 훨씬 크게 설정해 보세요. 지금껏 가능하다고 생각했던 것 이상을 쟁취할 수 있는 강한 추진력이 붙습니다." },
-    "화성-토성": { theme: "규율 위의 용기", desc: "무모한 돌진이 아니라 냉철한 전략 위에서 움직여야 합니다. 오늘의 성취는 뜨거운 열정이 아니라 차가운 절제와 규칙에서 나옵니다." },
-    "화성-천왕성": { theme: "혁명의 불꽃", desc: "오래 참고 억눌러왔던 것에 대해 드디어 목소리를 높일 때입니다. 단, 관계의 파괴가 아닌 상황의 개선을 목표로 행동하세요." },
-    "화성-해왕성": { theme: "안개 속의 전투", desc: "무엇을 위해 싸우는지 방향이 흐릿해집니다. 열정적으로 달려들기 전에 목표를 다시 확인하세요. 방향 없는 용기는 자신을 소진시킵니다." },
-    "화성-명왕성": { theme: "파괴 후 재건", desc: "더 이상 작동하지 않는 오래된 방식을 과감히 끝낼 결단이 필요합니다. 집착을 끊어내는 그 행동이 새로운 시작의 씨앗이 됩니다." }
+    // ── 수성 조합 ──
+    "수성-태양": { theme: "빛나는 전령", desc: "오늘 당신의 언변이 강력한 사람의 마음을 움직입니다. 프레젠테이션이나 협상에 최적의 날입니다.", url: "https://blog.naver.com/legalhomebody/224193200340" },
+    "수성-목성": { theme: "대화로 여는 황금문", desc: "오늘 한 통의 메시지가 큰 기회의 문을 엽니다. 먼저 연락하는 것을 주저하지 마세요.", url: "https://blog.naver.com/legalhomebody/224193212040" },
+    "수성-토성": { theme: "신중한 계약", desc: "오늘은 말보다 문서가 중요합니다. 구두 약속은 기록으로 남기고, 절차를 철저히 지키세요.", url: "https://blog.naver.com/legalhomebody/224193215836" },
+    "수성-천왕성": { theme: "혁명적 발상", desc: "기발한 아이디어가 상식을 뒤집습니다. 다소 기괴해 보이는 발상이 의외의 해결책이 됩니다.", url: "https://blog.naver.com/legalhomebody/224193219556" },
+    "수성-해왕성": { theme: "안개 속의 메시지", desc: "정확한 말도 왜곡될 수 있습니다. 중요한 소통은 꼭 확인과 재확인을 거치세요.", url: "https://blog.naver.com/legalhomebody/224193232600" },
+    "수성-명왕성": { theme: "진실의 심문", desc: "감춰두었던 진실이 수면 위로 올라옵니다. 말을 꾸미기보다 솔직하게 털어놓으세요.", url: "https://blog.naver.com/legalhomebody/224193236689" },
+
+    // ── 금성 조합 ──
+    "금성-태양": { theme: "찬란한 전성기", desc: "당신의 매력이 크게 빛나는 날입니다. 오랫동안 준비해온 마음을 지금 꺼내어 보여주세요.", url: "https://blog.naver.com/legalhomebody/224193274304" },
+    "금성-목성": { theme: "풍요로운 사랑", desc: "당신을 아끼는 사람의 지원이 쏟아집니다. 인연과 창작 활동 모두 풍성한 결실을 맺습니다.", url: "https://blog.naver.com/legalhomebody/224193279526" },
+    "금성-토성": { theme: "시험받는 사랑", desc: "감정보다 현실이 앞에 놓입니다. 오래된 관계가 진심인지 타성인지 스스로 물어보세요.", url: "https://blog.naver.com/legalhomebody/224193283263" },
+    "금성-천왕성": { theme: "예상치 못한 설렘", desc: "전혀 예상치 못한 장소에서 마음이 흔들립니다. 열린 마음으로 새로운 만남을 맞이하세요.", url: "https://blog.naver.com/legalhomebody/224193287597" },
+    "금성-해왕성": { theme: "이상과 환상의 사랑", desc: "상대가 실제보다 완벽해 보입니다. 감정에 휩쓸리기 전에 현실을 냉정하게 바라보세요.", url: "https://blog.naver.com/legalhomebody/224193292532" },
+    "금성-명왕성": { theme: "저승까지 따라간 사랑", desc: "집착과 헌신의 경계에 섭니다. 내려놓아야 할 감정을 아직 붙들고 있지는 않은지 확인하세요.", url: "https://blog.naver.com/legalhomebody/224193296991" },
+
+    // ── 지구 조합 ──
+    "지구-태양": { theme: "생명의 기반", desc: "모든 것이 제자리에 있는 평온한 날입니다. 특별할 것 없어 보이는 오늘이 가장 완벽한 하루입니다.", url: "https://blog.naver.com/legalhomebody/224193357141" },
+    "지구-목성": { theme: "거대한 보호막", desc: "보이지 않는 든든한 후원자가 존재합니다. 혼자 감당하려 하지 말고 도움을 받아들이세요.", url: "https://blog.naver.com/legalhomebody/224193364010" },
+    "지구-토성": { theme: "견고한 기초 공사", desc: "당장 결과가 없더라도, 지금 묵묵히 쌓아 올리는 기반이 훗날 든든한 자산이 됩니다.", url: "https://blog.naver.com/legalhomebody/224193367646" },
+    "지구-천왕성": { theme: "지각 변동", desc: "일상을 뒤흔드는 변화의 바람이 붑니다. 저항하면 더 큰 충격이 오니 유연하게 흐름에 맡기세요.", url: "https://blog.naver.com/legalhomebody/224193375597" },
+    "지구-해왕성": { theme: "현실 속의 꿈", desc: "목표가 현실적인 발판 위에 있는지 점검하세요. 발이 땅을 완전히 떠나는 것은 위험합니다.", url: "https://blog.naver.com/legalhomebody/224193381278" },
+    "지구-명왕성": { theme: "깊은 땅속의 변화", desc: "불편하게 느껴지는 상황이 사실 새로운 시작을 위한 준비임을 깨달으세요.", url: "https://blog.naver.com/legalhomebody/224194172839" },
+
+    // ── 달 조합 ──
+    "달-태양": { theme: "일식과 보름달", desc: "내면과 외부 상황이 완벽하게 일치합니다. 갈망했던 것을 선언하세요. 우주가 당신 편입니다.", url: "https://blog.naver.com/legalhomebody/224194177976" },
+    "달-목성": { theme: "넘치는 감정의 축제", desc: "감정이 넘쳐흐릅니다. 이 에너지를 창작, 대화로 표현하면 뜻밖의 큰 호응을 얻게 됩니다.", url: "https://blog.naver.com/legalhomebody/224194186324" },
+    "달-토성": { theme: "억누른 감정", desc: "하고 싶은 말을 참아야 하는 상황이 옵니다. 일기나 산책 등 고요한 시간으로 소화해 보세요.", url: "https://blog.naver.com/legalhomebody/224194192706" },
+    "달-천왕성": { theme: "갑작스러운 폭풍", desc: "예측 불가능한 감정의 파도가 밀려옵니다. 충동적인 행동 전에 깊게 심호흡을 하세요.", url: "https://blog.naver.com/legalhomebody/224194198981" },
+    "달-해왕성": { theme: "꿈과 현실의 경계", desc: "직관이 극대화되지만, 현실 판단이 흐려질 수 있습니다. 중요한 결정은 내일로 미루세요.", url: "https://blog.naver.com/legalhomebody/224194203858" },
+    "달-명왕성": { theme: "상처의 변환", desc: "오래된 상처가 떠오릅니다. 회피하지 말고 마주하세요. 진정한 치유는 지금부터입니다.", url: "https://blog.naver.com/legalhomebody/224194210997" },
+
+    // ── 화성 조합 ──
+    "화성-태양": { theme: "전쟁의 화신", desc: "두려움이 사라지고 에너지가 정점입니다. 피해왔던 벅찬 과제를 오늘 정면 돌파해 보세요.", url: "https://blog.naver.com/legalhomebody/224194246830" },
+    "화성-목성": { theme: "정복자의 야망", desc: "목표를 평소보다 크게 설정해 보세요. 상상 이상을 쟁취할 수 있는 강한 추진력이 붙습니다.", url: "https://blog.naver.com/legalhomebody/224194251141" },
+    "화성-토성": { theme: "규율 위의 용기", desc: "무모한 돌진이 아닌 냉철한 전략이 필요합니다. 성취는 뜨거운 열정이 아닌 차가운 절제에서 나옵니다.", url: "https://blog.naver.com/legalhomebody/224194253749" },
+    "화성-천왕성": { theme: "혁명의 불꽃", desc: "억눌러왔던 것에 목소리를 높일 때입니다. 단, 관계 파괴가 아닌 상황 개선을 목표로 하세요.", url: "https://blog.naver.com/legalhomebody/224194260105" },
+    "화성-해왕성": { theme: "안개 속의 전투", desc: "무엇을 위해 싸우는지 방향이 흐릿해집니다. 열정적으로 달려들기 전에 목표를 다시 확인하세요.", url: "https://blog.naver.com/legalhomebody/224194265431" },
+    "화성-명왕성": { theme: "파괴 후 재건", desc: "더 이상 작동하지 않는 오래된 방식을 과감히 끝내세요. 집착을 끊어내는 것이 새로운 시작입니다.", url: "https://blog.naver.com/legalhomebody/224194269877" }
 };
 
-// ============================================================
-// 페이지 로드 시 멘트 표시
-// ============================================================
 window.onload = function() {
-    const messageEl = document.getElementById('daily-message');
-    const today  = new Date();
-    const days   = ['일','월','화','수','목','금','토'];
-    const months = today.getMonth() + 1;
-    const date   = today.getDate();
-    const day    = days[today.getDay()];
-
-    messageEl.innerHTML = 
-        `오늘은 ${months}월 ${date}일 ${day}요일입니다. 🌙<br>
-         우주는 오늘도 조용히 당신 곁에서 돌고 있습니다.<br><br>
-         행복한 쿼카의 태양계 운세로 오늘 하루를 시작해보세요. 🐿️`;
+    const today = new Date();
+    const days = ['일','월','화','수','목','금','토'];
+    document.getElementById('daily-message').innerHTML = `오늘은 ${today.getMonth()+1}월 ${today.getDate()}일 ${days[today.getDay()]}요일입니다. 🌙<br>우주는 오늘도 조용히 당신 곁에서 돌고 있습니다.<br><br>행복한 쿼카의 태양계 운세로 오늘 하루를 시작해보세요. 🐿️`;
 };
 
-// ============================================================
-// 화면 전환 로직
-// ============================================================
+let shuffleTimer;
 function startFortune() {
     document.getElementById('intro-screen').classList.add('hidden');
-    const loadingScreen = document.getElementById('loading-screen');
-    loadingScreen.classList.remove('hidden');
-    loadingScreen.classList.add('fade-in');
+    document.getElementById('loading-screen').classList.remove('hidden');
+    
+    const deck = document.getElementById('shuffle-deck');
+    deck.innerHTML = '';
+    const cards = [];
+    
+    for(let i=0; i<5; i++) {
+        let c = document.createElement('div');
+        c.className = 'shuffle-card';
+        deck.appendChild(c);
+        cards.push(c);
+    }
 
-    setTimeout(showResult, 3500);
+    let count = 0;
+    shuffleTimer = setInterval(() => {
+        cards.forEach(c => {
+            const rx = (Math.random() - 0.5) * 120;
+            const ry = (Math.random() - 0.5) * 60;
+            const rDeg = (Math.random() - 0.5) * 90;
+            c.style.transform = `translate(${rx}px, ${ry}px) rotate(${rDeg}deg)`;
+            c.style.zIndex = Math.floor(Math.random() * 10);
+            c.innerText = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+        });
+        count++;
+        if(count > 18) {
+            clearInterval(shuffleTimer);
+            cards.forEach(c => { c.style.transform = 'translate(0px, 0px) rotate(0deg)'; });
+        }
+    }, 500);
+
+    setTimeout(showResult, 10000);
 }
 
 function showResult() {
     document.getElementById('loading-screen').classList.add('hidden');
-
     const inner = innerPlanets[Math.floor(Math.random() * innerPlanets.length)];
     const outer = outerPlanets[Math.floor(Math.random() * outerPlanets.length)];
-    const key   = `${inner.name}-${outer.name}`;
-
-    const resultData = fortuneDB[key] || {
-        theme: "우주의 신비로운 교차점",
-        desc:  `${inner.name}의 기운과 ${outer.name}의 에너지가 만납니다. 예상치 못한 곳에서 우주의 지혜를 발견할 수 있는 하루입니다.`
+    const key = `${inner.name}-${outer.name}`;
+    
+    const resultData = fortuneDB[key] || { 
+        theme:"신비로운 교차점", 
+        desc:"우주의 지혜를 발견하는 날입니다.",
+        url: "https://blog.naver.com/legalhomebody" 
     };
-
-    document.getElementById('inner-emoji').innerText  = inner.emoji;
-    document.getElementById('inner-name').innerText   = inner.name;
-    document.getElementById('outer-emoji').innerText  = outer.emoji;
-    document.getElementById('outer-name').innerText   = outer.name;
+    
+    document.getElementById('inner-emoji').innerText = inner.emoji;
+    document.getElementById('inner-name').innerText = inner.name;
+    document.getElementById('outer-emoji').innerText = outer.emoji;
+    document.getElementById('outer-name').innerText = outer.name;
     document.getElementById('fortune-theme').innerText = `"${resultData.theme}"`;
-    document.getElementById('fortune-desc').innerText  = resultData.desc;
-
-    const resultScreen = document.getElementById('result-screen');
-    resultScreen.classList.remove('hidden');
-    resultScreen.classList.add('fade-in');
+    document.getElementById('fortune-desc').innerText = resultData.desc;
+    
+    document.getElementById('detail-btn').href = resultData.url;
+    document.getElementById('result-screen').classList.remove('hidden');
 }
 
 function resetFortune() {
     document.getElementById('result-screen').classList.add('hidden');
-    const introScreen = document.getElementById('intro-screen');
-    introScreen.classList.remove('hidden');
-    introScreen.classList.add('fade-in');
-}
-
-// ============================================================
-// 다른 운세 보기 (네이버 블로그 카테고리 링크로 이동)
-// ============================================================
-function goToOtherFortune() {
-    // 요청하신 네이버 블로그 카테고리 주소로 페이지를 이동시킵니다
-    window.location.href = "https://blog.naver.com/PostList.naver?blogId=legalhomebody&from=postList&categoryNo=14#";
+    document.getElementById('intro-screen').classList.remove('hidden');
 }
 </script>
 </body>
